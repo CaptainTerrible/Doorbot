@@ -1,11 +1,3 @@
-/*
-London Hackspace Membership Counter
- 
- LED Segment shifting, displaydata, etc are from Matt Little (info@re-innovation.co.uk / www.re-innovation.co.uk)
- Remainder butched by T Reynolds ( tim@christwithfries.net / www.appliedpraxis.com )
- 
- */
-
 #include <Dhcp.h>
 #include <Dns.h>
 #include <Ethernet.h>
