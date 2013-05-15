@@ -9,10 +9,11 @@
 
 byte mac[] = {  
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-
+  
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
 unsigned int BroadcastPort = 50000;
 
-EthernetUDP UDP;
+EthernetUDP DoorBotListener;
 
 void setup()
 {
@@ -36,17 +37,43 @@ void setup()
   }
 
   Serial.println();
-  
-  /*
-    The standard Arduino ethernet library does not support multicast. Modified version does.
-    http://tkkrlab.nl/wiki/Arduino_UDP_multicast
-  */
-  
+  Serial.print("Starting listener on port ");
+  Serial.print(BroadcastPort);
+  Serial.println();
+
+  DoorBotListener.begin(BroadcastPort);
+
 }
 
 void loop()
 {
+  // if there's data available, read a packet
+  int packetSize = DoorBotListener.parsePacket();
+  if(packetSize)
+  {
+    Serial.print("Received packet of size ");
+    Serial.println(packetSize);
+    Serial.print("From ");
+    IPAddress remote = DoorBotListener.remoteIP();
+    for (int i =0; i < 4; i++)
+    {
+      Serial.print(remote[i], DEC);
+      if (i < 3)
+      {
+        Serial.print(".");
+      }
+    }
+    Serial.print(", port ");
+    Serial.println(DoorBotListener.remotePort());
 
+    // read the packet into packetBufffer
+    DoorBotListener.read(packetBuffer,UDP_TX_PACKET_MAX_SIZE);
+    Serial.println("Contents:");
+    Serial.println(packetBuffer);
+  }
 }
+
+
+
 
 
