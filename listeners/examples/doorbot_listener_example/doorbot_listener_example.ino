@@ -13,11 +13,15 @@ Tim Reynolds tim@christwithfries.net
 #include <util.h>
 #include <SPI.h>
 
+#define packetsize 1024
+
 byte mac[] = {  
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
   
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
-unsigned int BroadcastPort = 50000;
+char packetBuffer[packetsize];
+
+//unsigned int ListenPort = 50000; //Back Door
+unsigned int ListenPort = 50002; //Front Door
 
 EthernetUDP DoorBotListener;
 
@@ -44,38 +48,42 @@ void setup()
 
   Serial.println();
   Serial.print("Starting listener on port ");
-  Serial.print(BroadcastPort);
+  Serial.print(ListenPort);
   Serial.println();
 
-  DoorBotListener.begin(BroadcastPort);
+  DoorBotListener.begin(ListenPort);
 
 }
 
 void loop()
 {
-  // if there's data available, read a packet
   int packetSize = DoorBotListener.parsePacket();
+  
   if(packetSize)
   {
-    Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
-    IPAddress remote = DoorBotListener.remoteIP();
-    for (int i =0; i < 4; i++)
-    {
-      Serial.print(remote[i], DEC);
-      if (i < 3)
-      {
-        Serial.print(".");
-      }
-    }
-    Serial.print(", port ");
-    Serial.println(DoorBotListener.remotePort());
+    DoorBotListener.read(packetBuffer,packetsize);
+    
+    String msgPacket = "";
+    msgPacket.concat(packetBuffer);
 
-    // read the packet into packetBufffer
-    DoorBotListener.read(packetBuffer,UDP_TX_PACKET_MAX_SIZE);
-    Serial.println("Contents:");
-    Serial.println(packetBuffer);
+    int msgFirstTab = msgPacket.indexOf('\n');
+    int msgSecondTab = msgPacket.indexOf('\n',msgPacket.length());
+    
+    String msgEvent = msgPacket.substring(0,4);
+    String msgSerial = msgPacket.substring(msgFirstTab,msgSecondTab);
+    String msgName = msgPacket.substring(msgSecondTab);
+    
+    Serial.println("===== Start of Event =====");
+    Serial.print("Event type:");
+    Serial.println(msgEvent);
+    Serial.print("Serial:");
+    Serial.println(msgSerial);    
+    Serial.print("Name:");
+    Serial.println(msgName);        
+    Serial.println("===== End of Event =====");
+    
+    Serial.println("Raw dump:"); 
+    Serial.println(msgPacket);
   }
 }
 
