@@ -63,25 +63,35 @@ void loop()
   {
     DoorBotListener.read(packetBuffer,packetsize);
     
+    //Convert packetBuffer into a string object  
     String msgPacket = "";
     msgPacket.concat(packetBuffer);
-
+    
+    //Find the first tab character, after the event type
     int msgFirstTab = msgPacket.indexOf('\n');
+    //Find the second tab character, after the serial but before the name
     int msgSecondTab = msgPacket.indexOf('\n',msgPacket.length());
     
-    String msgEvent = msgPacket.substring(0,4);
-    String msgSerial = msgPacket.substring(msgFirstTab,msgSecondTab);
-    String msgName = msgPacket.substring(msgSecondTab);
+    //Chop up msgPacket - this is hacky and doesn't work.
     
-    Serial.println("===== Start of Event =====");
+    //First four characters are the event type 
+    String msgEvent = msgPacket.substring(0,4);
+    //Characters between the first and second tabs are the serial
+    String msgSerial = msgPacket.substring(msgFirstTab+1,msgSecondTab);
+    //Characters after the second tab are the name
+    String msgName = msgPacket.substring(msgSecondTab+1);
+    
+    //Dump the split parts of the event to serial
+    Serial.println("Doorbot event {");
     Serial.print("Event type:");
     Serial.println(msgEvent);
     Serial.print("Serial:");
     Serial.println(msgSerial);    
     Serial.print("Name:");
     Serial.println(msgName);        
-    Serial.println("===== End of Event =====");
+    Serial.println("}");
     
+    //Dump the raw packet received to aid in debugging (ha!)
     Serial.println("Raw dump:"); 
     Serial.println(msgPacket);
   }
