@@ -1,8 +1,8 @@
 /* 
-Example doorbot listener
-
-Tim Reynolds tim@christwithfries.net
-*/
+ Example doorbot listener
+ 
+ Tim Reynolds tim@christwithfries.net
+ */
 
 #include <Dhcp.h>
 #include <Dns.h>
@@ -17,9 +17,8 @@ Tim Reynolds tim@christwithfries.net
 
 byte mac[] = {  
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-  
-char packetBuffer[packetsize];
 
+char packetBuffer[packetsize];
 //unsigned int ListenPort = 50000; //Back Door
 unsigned int ListenPort = 50002; //Front Door
 
@@ -58,54 +57,70 @@ void setup()
 void loop()
 {
   int packetSize = DoorBotListener.parsePacket();
-  
+
   if(packetSize)
   {
 
+    String msgPacket = "";
+    String msgDoor = "";
+    int msgFirstTab = 0;
+    int msgSecondTab = 0;    
+    String msgEvent = "";
+    String msgSerial = "";
+    String msgName = "";
+    
     int msgRemotePort = DoorBotListener.remotePort();
     IPAddress msgRemoteIP = DoorBotListener.remoteIP();
-
+    
     DoorBotListener.read(packetBuffer,packetsize);
-    
+
     //Convert packetBuffer into a string object  
-    String msgPacket = "";
     msgPacket.concat(packetBuffer);
-    
+
+    //Work out what door we're dealing with
+    switch (ListenPort) {
+    case 50000:
+      msgDoor = "back";
+      break;
+    case 50002:
+      msgDoor = "front";
+      break;
+    default:
+      msgDoor = "unknown"; //Beware of those entering from this door. 
+    }   
+
+    //Split up msgPacket - this is hacky and doesn't work. **FIXME**
+
     //Find the first tab character, after the event type
-    int msgFirstTab = msgPacket.indexOf('\n');
+    msgFirstTab = msgPacket.indexOf('\n');
     //Find the second tab character, after the serial but before the name
-    int msgSecondTab = msgPacket.indexOf('\n',msgPacket.length());
-    
-    //Chop up msgPacket - this is hacky and doesn't work.
-    
+    msgSecondTab = msgPacket.indexOf('\n',msgPacket.length());
     //First four characters are the event type 
-    String msgEvent = msgPacket.substring(0,4);
+    msgEvent = msgPacket.substring(0,4);
     //Characters between the first and second tabs are the serial
-    String msgSerial = msgPacket.substring(msgFirstTab+1,msgSecondTab);
+    msgSerial = msgPacket.substring(msgFirstTab+1,msgSecondTab);
     //Characters after the second tab are the name
-    String msgName = msgPacket.substring(msgSecondTab+1);
-    
+    msgName = msgPacket.substring(msgSecondTab+1);
+
     //Dump the split parts of the event to serial
     Serial.print("Doorbot event from ");
     Serial.print(msgRemoteIP);
     Serial.print(":");
     Serial.print(msgRemotePort);
     Serial.println(" {");
-    Serial.print("Event type:");
+    Serial.print("Door: ");
+    Serial.println(msgDoor);
+    Serial.print("Event type: ");
     Serial.println(msgEvent);
-    Serial.print("Serial:");
+    Serial.print("Serial: ");
     Serial.println(msgSerial);    
-    Serial.print("Name:");
+    Serial.print("Name: ");
     Serial.println(msgName);        
     Serial.println("}");
-    
+
     //Dump the raw packet received to aid in debugging (ha!)
-    Serial.println("Raw dump:"); 
+    Serial.println("==Raw Dump Start=="); 
     Serial.println(msgPacket);
+    Serial.println("==Raw Dump End==");
   }
 }
-
-
-
-
-
