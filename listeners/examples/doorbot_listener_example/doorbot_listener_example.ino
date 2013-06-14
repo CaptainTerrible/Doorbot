@@ -72,11 +72,18 @@ void loop()
     int msgRemotePort = DoorBotListener.remotePort();
     IPAddress msgRemoteIP = DoorBotListener.remoteIP();
     
-    DoorBotListener.read(packetBuffer,packetsize);
+    DoorBotListener.read(packetBuffer,packetSize);
 
-    //Convert packetBuffer into a string object  
+    //Copy packetBuffer into a string object  
     msgPacket.concat(packetBuffer);
 
+    //Zero packetBuffer    
+    int i = 0;
+    while (i < packetSize) {      
+      packetBuffer[i] = 0;
+      i++;
+    }
+    
     //Work out what door we're dealing with
     switch (ListenPort) {
     case 50000:
