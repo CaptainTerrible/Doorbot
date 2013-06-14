@@ -13,54 +13,66 @@
 #include <util.h>
 #include <SPI.h>
 
-#define packetsize 1024
+//Maximum size for packet buffer. Default (UDP_TX_PACKET_MAX_SIZE) is very low.
+#define MaxPacketSize 1024
 
+//This is the MAC address the shield will use. Please change it!
 byte mac[] = {  
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-char packetBuffer[packetsize];
+//Buffer for storing incoming ethernet packets
+char PacketBuffer[MaxPacketSize];
+
+//Choose a port to listen  on. 
 //unsigned int ListenPort = 50000; //Back Door
 unsigned int ListenPort = 50002; //Front Door
 
+//Initialise UDP listener
 EthernetUDP DoorBotListener;
 
 void setup()
 {
+  //Setup serial monitor
   Serial.begin(9600);
+  
   Serial.println("Example doorbot listener starting up.");
-
+  
   Serial.print("Attempting to get IP via DHCP...");
   if (Ethernet.begin(mac) == 0) {
     Serial.println("failed.");
     Serial.println("Unable to configure Ethernet using DHCP, halting.");
+    //Can't get an IP, sit in an endless loop.
     for(;;)
       ;
   } 
   else {
     Serial.println("done.");
     Serial.print("IP address: ");
+    //Serial.print(Ethernet.localIP());
     for (byte thisByte = 0; thisByte < 4; thisByte++) {
       Serial.print(Ethernet.localIP()[thisByte], DEC);
       Serial.print("."); 
     }
   }
-
+  
   Serial.println();
   Serial.print("Starting listener on port ");
   Serial.print(ListenPort);
   Serial.println();
-
+  
+  //We have an IP, start listening.
   DoorBotListener.begin(ListenPort);
 
 }
 
 void loop()
 {
+  //Check if we have data waiting
   int packetSize = DoorBotListener.parsePacket();
-
+  
   if(packetSize)
   {
-
+    
     String msgPacket = "";
     String msgDoor = "";
     int msgFirstTab = 0;
@@ -69,21 +81,22 @@ void loop()
     String msgSerial = "";
     String msgName = "";
     
+    //Save the IP and port of the remote machine that sent the packet.
     int msgRemotePort = DoorBotListener.remotePort();
     IPAddress msgRemoteIP = DoorBotListener.remoteIP();
     
-    DoorBotListener.read(packetBuffer,packetSize);
+    DoorBotListener.read(PacketBuffer,MaxPacketSize);
 
     //Copy packetBuffer into a string object  
-    msgPacket.concat(packetBuffer);
+    msgPacket.concat(PacketBuffer);
 
     //Zero packetBuffer    
     int i = 0;
     while (i < packetSize) {      
-      packetBuffer[i] = 0;
+      PacketBuffer[i] = 0;
       i++;
     }
-    
+
     //Work out what door we're dealing with
     switch (ListenPort) {
     case 50000:
@@ -96,7 +109,7 @@ void loop()
       msgDoor = "unknown"; //Beware of those entering from this door. 
     }   
 
-    //Split up msgPacket - this is hacky and doesn't work. **FIXME**
+    //Split up msgPacket - this is hacky and doesn't work. **FIXME**    
 
     //Find the first tab character, after the event type
     msgFirstTab = msgPacket.indexOf('\n');
@@ -125,7 +138,7 @@ void loop()
     Serial.println(msgName);        
     Serial.println("}");
 
-    //Dump the raw packet received to aid in debugging (ha!)
+    //Dump the raw packet received to aid in debugging
     Serial.println("==Raw Dump Start=="); 
     Serial.println(msgPacket);
     Serial.println("==Raw Dump End==");
