@@ -32,6 +32,9 @@ EthernetUDP DoorBotListener;
 
 void setup()
 {
+  //Enable onboard LED
+  pinMode(13, OUTPUT);
+  
   //Setup serial monitor
   Serial.begin(9600);
   
@@ -80,22 +83,26 @@ void loop()
     String msgEvent = "";
     String msgSerial = "";
     String msgName = "";
+ 
+    //Flash LED twice, with 0.5s delay
+    FlashLed(2,500);   
     
     //Save the IP and port of the remote machine that sent the packet.
     int msgRemotePort = DoorBotListener.remotePort();
     IPAddress msgRemoteIP = DoorBotListener.remoteIP();
     
-    DoorBotListener.read(PacketBuffer,MaxPacketSize);
-
-    //Copy packetBuffer into a string object  
-    msgPacket.concat(PacketBuffer);
-
     //Zero packetBuffer    
     int i = 0;
     while (i < packetSize) {      
       PacketBuffer[i] = 0;
       i++;
     }
+    
+    //Read the waiting data
+    DoorBotListener.read(PacketBuffer,MaxPacketSize);
+
+    //Copy packetBuffer into a string object  
+    msgPacket.concat(PacketBuffer);
 
     //Work out what door we're dealing with
     switch (ListenPort) {
@@ -140,7 +147,22 @@ void loop()
 
     //Dump the raw packet received to aid in debugging
     Serial.println("==Raw Dump Start=="); 
-    Serial.println(msgPacket);
+    Serial.println(PacketBuffer);
     Serial.println("==Raw Dump End==");
+  }
+}
+
+void FlashLed(int flashnum, int flashdelay)
+{
+  int i = 0;
+  
+  while (i < flashnum)
+  {  
+  digitalWrite(13, HIGH);
+  delay(flashdelay);
+  digitalWrite(13, LOW);
+  delay(flashdelay);
+  i++;
+  Serial.println("FLASH!");
   }
 }
