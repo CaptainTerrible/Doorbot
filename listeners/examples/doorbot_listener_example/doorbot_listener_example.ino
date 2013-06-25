@@ -90,12 +90,13 @@ void loop()
     //Copy packetBuffer into a string object  
     msgPacket.concat(PacketBuffer);
 
+    /*
     //Zero packetBuffer    
     int i = 0;
     while (i < packetSize) {      
       PacketBuffer[i] = 0;
       i++;
-    }
+    }*/
 
     //Work out what door we're dealing with
     switch (ListenPort) {
