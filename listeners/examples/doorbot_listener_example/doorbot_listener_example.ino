@@ -79,9 +79,9 @@ void loop()
     DoorBotListener.read(PacketBuffer,MaxPacketSize);
 
     //Dump the raw packet
+    Serial.println("Doorbot Event {");
     Serial.println(PacketBuffer);
-
-    //**FIXME** PacketBuffer is reused and full of previous events.
+    Serial.println("}");
   }
 }
 
