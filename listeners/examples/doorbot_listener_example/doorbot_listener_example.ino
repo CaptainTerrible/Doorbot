@@ -82,6 +82,11 @@ void loop()
     Serial.println("Doorbot Event {");
     Serial.println(PacketBuffer);
     Serial.println("}");
+    
+    //Clear PacketBuffer
+    memset(PacketBuffer, 0, sizeof(PacketBuffer));
+
   }
 }
+
 
